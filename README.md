@@ -1,3 +1,6 @@
+This is a fork to help update this project ->
+
+
 [![wtfpl logo](http://www.wtfpl.net/wp-content/uploads/2012/12/wtfpl-badge-4.png)](http://www.wtfpl.net)
 # Failsafe Liquibase Locking with Kubernetes Support
 Alternate Liquibase Locking solution which makes able an application to recover from a terminated Schema update using Kubernetes API.
@@ -67,6 +70,19 @@ env:
 ##RBAC config
 
 If you use RBAC in your cluster the following permissions are required for the pod's Service Account 
+Don't forget to also add a role binding.
+```yaml
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: reader-role
+rules:
+  - apiGroups: [""]
+    resources: ["services", "endpoints", "pods", "pods/status"]
+    verbs: ["get", "watch", "list"]
+```
+
+Example for configuring with the service account:
 
 ```yaml
 kind: Role
@@ -75,6 +91,21 @@ metadata:
   name: reader-role
 rules:
   - apiGroups: [""]
-    resources: ["*"]
+    resources: ["services", "endpoints", "pods", "pods/status"]
     verbs: ["get", "watch", "list"]
+---
+
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: reader-role-binding
+  namespace: default
+subjects:
+  - kind: ServiceAccount
+    name: default
+    apiGroup: ""
+roleRef:
+  kind: Role
+  name: reader-role
+  apiGroup: ""
 ```
